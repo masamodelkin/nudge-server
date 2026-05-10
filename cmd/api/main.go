@@ -53,6 +53,10 @@ func main() {
 	statusHandler := handler.NewStatusHandler(statusService)
 	statusHandler.RegisterRoutes(protected)
 
+	labelsService := service.NewLabelService(s)
+	labelsHandler := handler.NewLabelHandler(labelsService)
+	labelsHandler.RegisterRoutes(protected)
+
 	log.Println("Server starting on :" + strconv.Itoa(cfg.Server.Port))
 	r.Run(":" + strconv.Itoa(cfg.Server.Port))
 }

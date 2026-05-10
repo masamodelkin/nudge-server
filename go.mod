@@ -1,4 +1,4 @@
-module planner
+module github.com/masamodelkin/nudge-server
 
 go 1.25.0
 

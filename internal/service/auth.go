@@ -3,11 +3,10 @@ package service
 import (
 	"errors"
 
-	"planner/internal/auth"
-	"planner/internal/model"
-	"planner/internal/store"
-
 	"github.com/google/uuid"
+	"github.com/masamodelkin/nudge-server/internal/auth"
+	"github.com/masamodelkin/nudge-server/internal/model"
+	"github.com/masamodelkin/nudge-server/internal/store"
 )
 
 var (

@@ -4,9 +4,8 @@ import (
 	"errors"
 	"net/http"
 
-	"planner/internal/service"
-
 	"github.com/gin-gonic/gin"
+	"github.com/masamodelkin/nudge-server/internal/service"
 )
 
 type AuthHandler struct {

@@ -3,16 +3,16 @@ package main
 import (
 	"log"
 	"os"
-	"planner/config"
-	"planner/internal/auth"
-	"planner/internal/handler"
-	"planner/internal/service"
-	"planner/internal/store"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
 	"github.com/joho/godotenv"
+	"github.com/masamodelkin/nudge-server/config"
+	"github.com/masamodelkin/nudge-server/internal/auth"
+	"github.com/masamodelkin/nudge-server/internal/handler"
+	"github.com/masamodelkin/nudge-server/internal/service"
+	"github.com/masamodelkin/nudge-server/internal/store"
 	_ "github.com/mattn/go-sqlite3"
 )
 

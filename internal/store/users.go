@@ -1,7 +1,7 @@
 package store
 
 import (
-	"planner/internal/model"
+	"github.com/masamodelkin/nudge-server/internal/model"
 )
 
 func (s *Store) CreateUser(user *model.User) error {

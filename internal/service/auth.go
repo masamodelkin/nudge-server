@@ -84,13 +84,13 @@ func (s *AuthService) Register(req RegisterRequest) (*RegisterResponse, error) {
 }
 
 // Login verifies credentials and returns JWT tokens.
-func (s *AuthService) Login(username string, password string) (*LoginResponse, error) {
-	user, err := s.store.GetUserByUsername(username)
+func (s *AuthService) Login(req LoginRequest) (*LoginResponse, error) {
+	user, err := s.store.GetUserByUsername(req.Username)
 	if err != nil {
 		return nil, ErrInvalidCredentials
 	}
 
-	if !auth.CheckPassword(password, user.PasswordHash) {
+	if !auth.CheckPassword(req.Password, user.PasswordHash) {
 		return nil, ErrInvalidCredentials
 	}
 
@@ -159,4 +159,9 @@ func (s *AuthService) generateAndStoreTokens(userID string) (string, string, err
 	}
 
 	return accessToken, refreshToken, nil
+}
+
+func (s *AuthService) Logout(refreshToken string) error {
+	tokenHash := auth.HashToken(refreshToken)
+	return s.store.DeleteRefreshTokenByHash(tokenHash)
 }

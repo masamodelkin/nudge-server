@@ -79,7 +79,7 @@ func (s *Store) DeleteRefreshToken(id string) error {
 	return err
 }
 
-func (s *Store) DeleteUserRefreshTokens(userID string) error {
-	_, err := s.db.Exec("DELETE FROM refresh_tokens WHERE user_id = ?", userID)
+func (s *Store) DeleteRefreshTokenByHash(hash string) error {
+	_, err := s.db.Exec("DELETE FROM refresh_tokens WHERE token_hash = ?", hash)
 	return err
 }

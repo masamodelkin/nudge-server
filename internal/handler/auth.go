@@ -31,10 +31,15 @@ type refreshRequest struct {
 	RefreshToken string `json:"refresh_token" binding:"required"`
 }
 
-func (h *AuthHandler) RegisterRoutes(public, private *gin.RouterGroup) {
+type logoutRequest struct {
+	RefreshToken string `json:"refresh_token" binding:"required"`
+}
+
+func (h *AuthHandler) RegisterRoutes(public, protected *gin.RouterGroup) {
 	public.POST("auth/register", h.Register)
 	public.POST("auth/login", h.Login)
 	public.POST("auth/refresh", h.Refresh)
+	protected.POST("auth/logout", h.Logout)
 }
 
 // Register handles POST /auth/register.
@@ -70,7 +75,10 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	resp, err := h.service.Login(req.Username, req.Password)
+	resp, err := h.service.Login(service.LoginRequest{
+		Username: req.Username,
+		Password: req.Password,
+	})
 	if err != nil {
 		if errors.Is(err, service.ErrInvalidCredentials) {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid username or password"})
@@ -104,13 +112,17 @@ func (h *AuthHandler) Refresh(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-// func (h *AuthHandler) Logout(c *gin.Context) {
-// 	userID := c.GetString("userID")
+func (h *AuthHandler) Logout(c *gin.Context) {
+	var req logoutRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
-// 	if err := h.service.Logout(userID); err != nil {
-// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "something went wrong"})
-// 		return
-// 	}
+	if err := h.service.Logout(req.RefreshToken); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "something went wrong"})
+		return
+	}
 
-//		c.JSON(http.StatusOK, gin.H{"message": "logged out"})
-//	}
+	c.JSON(http.StatusOK, gin.H{"message": "logged out"})
+}

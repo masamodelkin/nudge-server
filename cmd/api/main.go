@@ -40,14 +40,18 @@ func main() {
 		cfg.Auth.AccessTokenDuration,
 		cfg.Auth.RefreshTokenDuration,
 	)
-	authService := service.NewAuthService(s, a.Tokens)
-	authHandler := handler.NewAuthHandler(authService)
 
 	r := gin.Default()
 	public := r.Group("/")
 	protected := r.Group("/api", auth.Middleware(a.Tokens))
 
+	authService := service.NewAuthService(s, a.Tokens)
+	authHandler := handler.NewAuthHandler(authService)
 	authHandler.RegisterRoutes(public, protected)
+
+	statusService := service.NewStatusService(s)
+	statusHandler := handler.NewStatusHandler(statusService)
+	statusHandler.RegisterRoutes(protected)
 
 	log.Println("Server starting on :" + strconv.Itoa(cfg.Server.Port))
 	r.Run(":" + strconv.Itoa(cfg.Server.Port))

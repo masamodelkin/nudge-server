@@ -1,0 +1,6 @@
+server:
+  port: 8080
+
+auth:
+  access_token_duration: 15m
+  refresh_token_duration: 168h  # 7 days

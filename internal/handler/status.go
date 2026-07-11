@@ -20,9 +20,9 @@ type createStatusRequest struct {
 	Name string `json:"name" binding:"required"`
 }
 
-type updateStatusRequest struct {
-	Name string `json:"name" binding:"required"`
-}
+// type updateStatusRequest struct {
+// 	Name string `json:"name" binding:"required"`
+// }
 
 func (h *StatusHandler) RegisterRoutes(protected *gin.RouterGroup) {
 	protected.POST("statuses", h.Create)

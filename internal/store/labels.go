@@ -34,6 +34,14 @@ func (s *Store) GetLabel(id string, userID string) (*model.Label, error) {
 	return &label, nil
 }
 
+func (s *Store) UpdateLabel(label *model.Label) error {
+	_, err := s.db.NamedExec(
+		"UPDATE labels SET name = :name, color = :color WHERE id = :id AND user_id = :user_id",
+		label,
+	)
+	return err
+}
+
 func (s *Store) DeleteLabel(id string, userID string) error {
 	_, err := s.db.Exec(
 		"DELETE FROM labels WHERE id = ? AND user_id = ?",

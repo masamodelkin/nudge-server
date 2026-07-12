@@ -16,12 +16,7 @@ func NewLabelHandler(s *service.LabelService) *LabelHandler {
 	return &LabelHandler{service: s}
 }
 
-type createLabelRequest struct {
-	Name  string  `json:"name" binding:"required"`
-	Color *string `json:"color"`
-}
-
-type updateLabelRequest struct {
+type labelRequest struct {
 	Name  string  `json:"name" binding:"required"`
 	Color *string `json:"color"`
 }
@@ -29,21 +24,29 @@ type updateLabelRequest struct {
 func (h *LabelHandler) RegisterRoutes(protected *gin.RouterGroup) {
 	protected.POST("labels", h.Create)
 	protected.GET("labels", h.List)
+	protected.PUT("labels/:id", h.Update)
 	protected.DELETE("labels/:id", h.Delete)
 }
 
 func (h *LabelHandler) Create(c *gin.Context) {
 	userID := c.GetString("userID")
 
-	var req createLabelRequest
+	var req labelRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	label, err := h.service.Create(userID, req.Name, req.Color)
+	label, err := h.service.Create(userID, &service.LabelRequest{
+		Name:  req.Name,
+		Color: req.Color,
+	})
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "something went wrong"})
+		if errors.Is(err, service.ErrLabelValidation) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "something went wrong"})
+		}
 		return
 	}
 
@@ -60,6 +63,34 @@ func (h *LabelHandler) List(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, labels)
+}
+
+func (h *LabelHandler) Update(c *gin.Context) {
+	userID := c.GetString("userID")
+	id := c.Param("id")
+
+	var req labelRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	label, err := h.service.Update(id, userID, &service.LabelRequest{
+		Name:  req.Name,
+		Color: req.Color,
+	})
+	if err != nil {
+		if errors.Is(err, service.ErrLabelNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		} else if errors.Is(err, service.ErrLabelValidation) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "something went wrong"})
+		}
+		return
+	}
+
+	c.JSON(http.StatusOK, label)
 }
 
 func (h *LabelHandler) Delete(c *gin.Context) {

@@ -28,7 +28,7 @@ type taskRequest struct {
 }
 
 type timeRequest struct {
-	Seconds int `json:"minutes" binding:"required"`
+	Seconds int `json:"seconds" binding:"required"`
 }
 
 func (h *TaskHandler) RegisterRoutes(protected *gin.RouterGroup) {

@@ -107,10 +107,16 @@ func (s *Store) UpdateTask(task *model.Task, labelIDs []string) error {
 		return err
 	}
 
-	tx.Exec("DELETE FROM task_labels WHERE task_id = ?", task.ID)
+	_, err = tx.Exec("DELETE FROM task_labels WHERE task_id = ?", task.ID)
+	if err != nil {
+		return err
+	}
 
 	for _, labelID := range labelIDs {
-		tx.Exec("INSERT INTO task_labels (task_id, label_id) VALUES (?, ?)", task.ID, labelID)
+		_, err = tx.Exec("INSERT INTO task_labels (task_id, label_id) VALUES (?, ?)", task.ID, labelID)
+		if err != nil {
+			return err
+		}
 	}
 
 	return tx.Commit()
@@ -120,14 +126,6 @@ func (s *Store) DeleteTask(id string, userID string) error {
 	_, err := s.db.Exec(
 		"DELETE FROM tasks WHERE id = ? AND user_id = ?",
 		id, userID,
-	)
-	return err
-}
-
-func (s *Store) RemoveTaskLabel(taskID string, labelID string) error {
-	_, err := s.db.Exec(
-		"DELETE FROM task_labels WHERE task_id = ? AND label_id = ?",
-		taskID, labelID,
 	)
 	return err
 }
@@ -178,18 +176,18 @@ func (s *Store) GetTasksLabels(taskIDs []string) (map[string][]model.Label, erro
 	return result, nil
 }
 
-func (s *Store) AddTaskTime(id string, userID string, minutes int) error {
+func (s *Store) AddTaskTime(id string, userID string, seconds int) error {
 	_, err := s.db.Exec(
 		"UPDATE tasks SET time_spent = time_spent + ?, updated_at = ? WHERE id = ? AND user_id = ?",
-		minutes, time.Now().Unix(), id, userID,
+		seconds, time.Now().Unix(), id, userID,
 	)
 	return err
 }
 
-func (s *Store) SetTaskTime(id string, userID string, minutes int) error {
+func (s *Store) SetTaskTime(id string, userID string, seconds int) error {
 	_, err := s.db.Exec(
 		"UPDATE tasks SET time_spent = ?, updated_at = ? WHERE id = ? AND user_id = ?",
-		minutes, time.Now().Unix(), id, userID,
+		seconds, time.Now().Unix(), id, userID,
 	)
 	return err
 }

@@ -35,7 +35,7 @@ func NewTaskService(s *store.Store) *TaskService {
 	return &TaskService{store: s}
 }
 
-func validateTask(task model.Task) error {
+func (s *TaskService) validateTask(task *model.Task, labelIDs []string, userID string) error {
 	if task.IsDraft {
 		if (task.Name == nil || *task.Name == "") && (task.Description == nil || *task.Description == "") {
 			return fmt.Errorf("%w: draft requires at least a name or description", ErrValidation)
@@ -61,6 +61,21 @@ func validateTask(task model.Task) error {
 			return fmt.Errorf("%w: due date or priority is required", ErrValidation)
 		}
 	}
+
+	if task.StatusID != nil {
+		_, err := s.store.GetStatus(*task.StatusID, userID)
+		if err != nil {
+			return fmt.Errorf("%w: status not found", ErrValidation)
+		}
+	}
+
+	for _, labelID := range labelIDs {
+		_, err := s.store.GetLabel(labelID, userID)
+		if err != nil {
+			return fmt.Errorf("%w: label not found", ErrValidation)
+		}
+	}
+
 	return nil
 }
 
@@ -80,7 +95,7 @@ func (s *TaskService) Create(userID string, req *TaskRequest) (*model.Task, erro
 		UpdatedAt:   time.Now().Unix(),
 	}
 
-	if err := validateTask(*task); err != nil {
+	if err := s.validateTask(task, req.LabelIDs, userID); err != nil {
 		return nil, err
 	}
 
@@ -123,7 +138,7 @@ func (s *TaskService) Update(id string, userID string, req *TaskRequest) (*model
 	task.Duration = req.Duration
 	task.StatusID = req.StatusID
 
-	if err := validateTask(*task); err != nil {
+	if err := s.validateTask(task, req.LabelIDs, userID); err != nil {
 		return nil, err
 	}
 

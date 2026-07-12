@@ -29,7 +29,7 @@ type StatusRequest struct {
 	IsDone       bool
 }
 
-func validateStatus(status *model.Status, store *store.Store) error {
+func (s *StatusService) validateStatus(status *model.Status) error {
 	if status.Name == "" {
 		return fmt.Errorf("%w: name is required", ErrStatusValidation)
 	}
@@ -39,7 +39,7 @@ func validateStatus(status *model.Status, store *store.Store) error {
 			return fmt.Errorf("%w: status cannot point to itself", ErrStatusValidation)
 		}
 
-		_, err := store.GetStatus(*status.NextStatusID, status.UserID)
+		_, err := s.store.GetStatus(*status.NextStatusID, status.UserID)
 		if err != nil {
 			return fmt.Errorf("%w: next status not found", ErrStatusValidation)
 		}
@@ -57,7 +57,7 @@ func (s *StatusService) Create(userID string, req *StatusRequest) (*model.Status
 		UserID:       userID,
 	}
 
-	if err := validateStatus(status, s.store); err != nil {
+	if err := s.validateStatus(status); err != nil {
 		return nil, err
 	}
 
@@ -84,7 +84,7 @@ func (s *StatusService) Update(id string, userID string, req *StatusRequest) (*m
 	status.NextStatusID = req.NextStatusID
 	status.IsDone = req.IsDone
 
-	if err := validateStatus(status, s.store); err != nil {
+	if err := s.validateStatus(status); err != nil {
 		return nil, err
 	}
 

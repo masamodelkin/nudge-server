@@ -80,13 +80,13 @@ func (s *StatusService) Update(id string, userID string, req *StatusRequest) (*m
 		return nil, err
 	}
 
-	if err := validateStatus(status, s.store); err != nil {
-		return nil, err
-	}
-
 	status.Name = req.Name
 	status.NextStatusID = req.NextStatusID
 	status.IsDone = req.IsDone
+
+	if err := validateStatus(status, s.store); err != nil {
+		return nil, err
+	}
 
 	if err := s.store.UpdateStatus(status); err != nil {
 		return nil, err

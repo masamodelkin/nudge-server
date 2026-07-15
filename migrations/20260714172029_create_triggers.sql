@@ -11,9 +11,9 @@ CREATE TABLE triggers (
 CREATE TABLE task_triggers (
     task_id TEXT NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
     trigger_id TEXT NOT NULL REFERENCES triggers(id) ON DELETE CASCADE,
-    PRIMARY KEY (task_id, label_id)
+    PRIMARY KEY (task_id, trigger_id)
 );
 
 -- +goose Down
-DROP TABLE triggers;
 DROP TABLE task_triggers;
+DROP TABLE triggers;

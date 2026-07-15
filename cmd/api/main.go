@@ -61,6 +61,10 @@ func main() {
 	taskHandler := handler.NewTaskHandler(taskService)
 	taskHandler.RegisterRoutes(protected)
 
+	triggerService := service.NewTriggerService(s)
+	triggerHandler := handler.NewTriggerHandler(triggerService)
+	triggerHandler.RegisterRoutes(protected)
+
 	log.Println("Server starting on :" + strconv.Itoa(cfg.Server.Port))
 	r.Run(":" + strconv.Itoa(cfg.Server.Port))
 }

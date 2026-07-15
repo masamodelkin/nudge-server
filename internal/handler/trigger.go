@@ -56,7 +56,7 @@ func (h *TriggerHandler) Create(c *gin.Context) {
 		}
 		return
 	}
-	c.JSON(http.StatusAccepted, trigger)
+	c.JSON(http.StatusCreated, trigger)
 }
 
 func (h *TriggerHandler) Get(c *gin.Context) {
@@ -72,7 +72,7 @@ func (h *TriggerHandler) Get(c *gin.Context) {
 		}
 		return
 	}
-	c.JSON(http.StatusAccepted, task)
+	c.JSON(http.StatusOK, task)
 }
 
 func (h *TriggerHandler) List(c *gin.Context) {
@@ -84,7 +84,7 @@ func (h *TriggerHandler) List(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusAccepted, tasks)
+	c.JSON(http.StatusOK, tasks)
 }
 
 func (h *TriggerHandler) Update(c *gin.Context) {
@@ -115,7 +115,7 @@ func (h *TriggerHandler) Update(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusAccepted, trigger)
+	c.JSON(http.StatusOK, trigger)
 }
 
 func (h *TriggerHandler) Delete(c *gin.Context) {
@@ -130,5 +130,5 @@ func (h *TriggerHandler) Delete(c *gin.Context) {
 		}
 		return
 	}
-	c.JSON(http.StatusAccepted, gin.H{"message": "trigger deleted"})
+	c.JSON(http.StatusOK, gin.H{"message": "trigger deleted"})
 }

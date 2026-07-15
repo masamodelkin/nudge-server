@@ -44,7 +44,7 @@ func validateLabel(label *model.Label) error {
 
 func (s *LabelService) Create(userID string, req *LabelRequest) (*model.Label, error) {
 	label := &model.Label{
-		ID:     uuid.New().String(),
+		ID:     uuid.NewString(),
 		Name:   req.Name,
 		Color:  req.Color,
 		UserID: userID,

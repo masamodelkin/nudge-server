@@ -25,6 +25,7 @@ type TaskRequest struct {
 	Duration    *int
 	StatusID    *string
 	LabelIDs    []string
+	TriggerIDs  []string
 }
 
 type TaskService struct {
@@ -35,7 +36,7 @@ func NewTaskService(s *store.Store) *TaskService {
 	return &TaskService{store: s}
 }
 
-func (s *TaskService) validateTask(task *model.Task, labelIDs []string, userID string) error {
+func (s *TaskService) validateTask(task *model.Task, labelIDs []string, triggerIDs []string, userID string) error {
 	if task.IsDraft {
 		if (task.Name == nil || *task.Name == "") && (task.Description == nil || *task.Description == "") {
 			return fmt.Errorf("%w: draft requires at least a name or description", ErrValidation)
@@ -76,6 +77,13 @@ func (s *TaskService) validateTask(task *model.Task, labelIDs []string, userID s
 		}
 	}
 
+	for _, triggerID := range triggerIDs {
+		_, err := s.store.GetTrigger(triggerID, userID)
+		if err != nil {
+			return fmt.Errorf("%w: trigger not found", ErrValidation)
+		}
+	}
+
 	return nil
 }
 
@@ -95,11 +103,11 @@ func (s *TaskService) Create(userID string, req *TaskRequest) (*model.Task, erro
 		UpdatedAt:   time.Now().Unix(),
 	}
 
-	if err := s.validateTask(task, req.LabelIDs, userID); err != nil {
+	if err := s.validateTask(task, req.LabelIDs, req.TriggerIDs, userID); err != nil {
 		return nil, err
 	}
 
-	if err := s.store.CreateTask(task, req.LabelIDs); err != nil {
+	if err := s.store.CreateTask(task, req.LabelIDs, req.TriggerIDs); err != nil {
 		return nil, err
 	}
 
@@ -138,11 +146,11 @@ func (s *TaskService) Update(id string, userID string, req *TaskRequest) (*model
 	task.Duration = req.Duration
 	task.StatusID = req.StatusID
 
-	if err := s.validateTask(task, req.LabelIDs, userID); err != nil {
+	if err := s.validateTask(task, req.LabelIDs, req.TriggerIDs, userID); err != nil {
 		return nil, err
 	}
 
-	if err := s.store.UpdateTask(task, req.LabelIDs); err != nil {
+	if err := s.store.UpdateTask(task, req.LabelIDs, req.TriggerIDs); err != nil {
 		return nil, err
 	}
 

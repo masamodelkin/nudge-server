@@ -75,7 +75,7 @@ func validateTriggerConfig(configType string, config *types.JSONText) error {
 			return fmt.Errorf("%w: at least one of start and end time is required for the time config", ErrTriggerValidation)
 		}
 		if c.Days != nil && len(c.Days) != 7 {
-			return fmt.Errorf("%w: days should be a bool array of lenght 7", ErrTriggerValidation)
+			return fmt.Errorf("%w: days should be a bool array of length 7", ErrTriggerValidation)
 		}
 		return nil
 	case "device":

@@ -25,6 +25,7 @@ type taskRequest struct {
 	Duration    *int     `json:"duration"`
 	StatusID    *string  `json:"status_id"`
 	LabelIDs    []string `json:"label_ids"`
+	TriggerIDs  []string `json:"trigger_ids"`
 }
 
 type timeRequest struct {
@@ -59,6 +60,7 @@ func (h *TaskHandler) Create(c *gin.Context) {
 		Duration:    req.Duration,
 		StatusID:    req.StatusID,
 		LabelIDs:    req.LabelIDs,
+		TriggerIDs:  req.TriggerIDs,
 	})
 	if err != nil {
 		if errors.Is(err, service.ErrValidation) {
@@ -120,6 +122,7 @@ func (h *TaskHandler) Update(c *gin.Context) {
 		Duration:    req.Duration,
 		StatusID:    req.StatusID,
 		LabelIDs:    req.LabelIDs,
+		TriggerIDs:  req.TriggerIDs,
 	})
 	if err != nil {
 		if errors.Is(err, service.ErrTaskNotFound) {

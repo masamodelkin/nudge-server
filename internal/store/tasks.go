@@ -7,7 +7,7 @@ import (
 	"github.com/masamodelkin/nudge-server/internal/model"
 )
 
-func (s *Store) CreateTask(task *model.Task, labelIDs []string) error {
+func (s *Store) CreateTask(task *model.Task, labelIDs []string, triggerIDs []string) error {
 	tx, err := s.db.Beginx()
 	if err != nil {
 		return err
@@ -33,6 +33,16 @@ func (s *Store) CreateTask(task *model.Task, labelIDs []string) error {
 		}
 	}
 
+	for _, triggerID := range triggerIDs {
+		_, err = tx.Exec(
+			"INSERT OR IGNORE INTO task_triggers (task_id, trigger_id) VALUES (?, ?)",
+			task.ID, triggerID,
+		)
+		if err != nil {
+			return err
+		}
+	}
+
 	return tx.Commit()
 }
 
@@ -50,6 +60,11 @@ func (s *Store) GetTask(id string, userID string) (*model.Task, error) {
 	task.Labels, _ = s.GetTaskLabels(task.ID)
 	if task.Labels == nil {
 		task.Labels = []model.Label{}
+	}
+
+	task.Triggers, _ = s.GetTaskTriggers(task.ID)
+	if task.Triggers == nil {
+		task.Triggers = []model.Trigger{}
 	}
 
 	return &task, nil
@@ -76,18 +91,23 @@ func (s *Store) ListTasks(userID string) ([]model.Task, error) {
 	}
 
 	labelsMap, _ := s.GetTasksLabels(taskIDs)
+	triggersMap, _ := s.GetTasksTriggers(taskIDs)
 
 	for i := range tasks {
 		tasks[i].Labels = labelsMap[tasks[i].ID]
 		if tasks[i].Labels == nil {
 			tasks[i].Labels = []model.Label{}
 		}
+		tasks[i].Triggers = triggersMap[tasks[i].ID]
+		if tasks[i].Triggers == nil {
+			tasks[i].Triggers = []model.Trigger{}
+		}
 	}
 
 	return tasks, nil
 }
 
-func (s *Store) UpdateTask(task *model.Task, labelIDs []string) error {
+func (s *Store) UpdateTask(task *model.Task, labelIDs []string, triggerIDs []string) error {
 	task.UpdatedAt = time.Now().Unix()
 
 	tx, err := s.db.Beginx()
@@ -114,6 +134,18 @@ func (s *Store) UpdateTask(task *model.Task, labelIDs []string) error {
 
 	for _, labelID := range labelIDs {
 		_, err = tx.Exec("INSERT INTO task_labels (task_id, label_id) VALUES (?, ?)", task.ID, labelID)
+		if err != nil {
+			return err
+		}
+	}
+
+	_, err = tx.Exec("DELETE FROM task_triggers WHERE task_id = ?", task.ID)
+	if err != nil {
+		return err
+	}
+
+	for _, triggerID := range triggerIDs {
+		_, err = tx.Exec("INSERT INTO task_triggers (task_id, trigger_id) VALUES (?, ?)", task.ID, triggerID)
 		if err != nil {
 			return err
 		}
@@ -172,6 +204,52 @@ func (s *Store) GetTasksLabels(taskIDs []string) (map[string][]model.Label, erro
 	result := make(map[string][]model.Label)
 	for _, row := range rows {
 		result[row.TaskID] = append(result[row.TaskID], row.Label)
+	}
+	return result, nil
+}
+
+func (s *Store) GetTaskTriggers(taskID string) ([]model.Trigger, error) {
+	var triggers []model.Trigger
+	err := s.db.Select(&triggers,
+		`SELECT t.id, t.name, t.type, t.config, t.is_exclusive, t.user_id
+         FROM triggers t
+         JOIN task_triggers tt ON t.id = tt.trigger_id
+         WHERE tt.task_id = ?`,
+		taskID,
+	)
+	return triggers, err
+}
+
+func (s *Store) GetTasksTriggers(taskIDs []string) (map[string][]model.Trigger, error) {
+	if len(taskIDs) == 0 {
+		return make(map[string][]model.Trigger), nil
+	}
+
+	type taskTrigger struct {
+		TaskID string `db:"task_id"`
+		model.Trigger
+	}
+
+	query, args, err := sqlx.In(
+		`SELECT tt.task_id, t.id, t.name, t.type, t.config, t.is_exclusive, t.user_id
+         FROM triggers t
+         JOIN task_triggers tt ON t.id = tt.trigger_id
+         WHERE tt.task_id IN (?)`,
+		taskIDs,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	var rows []taskTrigger
+	err = s.db.Select(&rows, s.db.Rebind(query), args...)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make(map[string][]model.Trigger)
+	for _, row := range rows {
+		result[row.TaskID] = append(result[row.TaskID], row.Trigger)
 	}
 	return result, nil
 }
